@@ -9,8 +9,10 @@ import {Keypair, PublicKey, clusterApiUrl} from '@solana/web3.js';
 import {useWallet} from '@solana/wallet-adapter-react';
 import {WalletMultiButton, WalletDisconnectButton} from '@solana/wallet-adapter-react-ui';
 import { getPhantomWallet } from "@solana/wallet-adapter-wallets";
+// import {AuctionExtended} from "@metaplex/js/lib/programs/auction";
 
-const { metaplex: { Store, AuctionManager }, metadata: { Metadata }, auction: { Auction }, vault: { Vault } } = programs;
+const { metaplex: { Store, AuctionManager }, metadata: { Metadata }, auction: {AuctionExtended}, vault: { Vault } } = programs;
+// const {AuctionExtended} = auction;
 
 const connection = new Connection('devnet');
 const tokenPublicKey = 'Gz3vYbpsB2agTsAwedtvtTkQ1CG9vsioqLW3r9ecNpvZ';
@@ -66,6 +68,49 @@ export const HomeView = () => {
             // Get existing store id
             // const storeId = await Store.getPDA(publicKey as AnyPublicKey);
         } catch {
+            console.log("onLookupStore", 'Failed to fetch store');
+        }
+    }
+
+    const onLookupAuctions = async () => {
+        if (!wallet) {
+            return;
+        }
+        // const metaplexWallet = new NodeWallet(wallet.)
+        try {
+            const auctionManagers = await AuctionManager.findMany(connection, {
+                store: storeId,
+            });
+            const auctions = await Promise.all(
+                auctionManagers.map(async (m) => {
+                    console.log("auction_manager", m.pubkey.toBase58());
+                    let auction = await m.getAuction(connection);
+                    console.log('auction', auction.pubkey.toBase58(), auction);
+
+                })
+            );
+
+            const vaults = await Promise.all(
+                auctionManagers.map(async (m) => {
+                    let vault = await Vault.load(connection, m.data.vault);
+                    console.log('vault', vault.pubkey.toBase58(), vault);
+                })
+            );
+            // console.log("auctions", auctions);
+
+            const auctionsExtKeys = await Promise.all(
+                auctionManagers.map((am) => AuctionExtended.getPDA(am.data.vault))
+            );
+            console.log("auctionsExtKeys --- before", auctionsExtKeys);
+            const auctionsExt = await Promise.all(
+                auctionsExtKeys.map((k) => AuctionExtended.load(connection, k))
+            );
+            console.log("auctionsExtKeys --- after", auctionsExtKeys);
+
+
+            // Get existing store id
+            // const storeId = await Store.getPDA(publicKey as AnyPublicKey);
+        } catch {
             console.log("onLookMyMetadata", 'Failed to fetch metadata');
         }
     }
@@ -88,7 +133,7 @@ export const HomeView = () => {
                 <br/>
                 Store: {storeId}<br/>
                 <br/>
-
+                <button onClick={onLookupAuctions} disabled={!storeId}>Check auctions</button><br/>
             </div>
         </div>
     );
