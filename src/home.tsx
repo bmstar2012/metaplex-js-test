@@ -11,11 +11,14 @@ import {WalletMultiButton, WalletDisconnectButton} from '@solana/wallet-adapter-
 import { getPhantomWallet } from "@solana/wallet-adapter-wallets";
 // import {AuctionExtended} from "@metaplex/js/lib/programs/auction";
 
-const { metaplex: { Store, AuctionManager }, metadata: { Metadata }, auction: {AuctionExtended}, vault: { Vault } } = programs;
+const { metaplex: { Store, AuctionManager }, metadata: { Metadata, MasterEdition }, auction: {AuctionExtended}, vault: { Vault } } = programs;
 // const {AuctionExtended} = auction;
 
 const connection = new Connection('devnet');
 const tokenPublicKey = 'Gz3vYbpsB2agTsAwedtvtTkQ1CG9vsioqLW3r9ecNpvZ';
+const mintKey = '6p9FgYi6BkacAXQFwojtfZMug3rspUCbB5MhbuSsD5ko';
+const metadataKey = 'EKARJfuuMXzAATpCQPVVNRZusVDpa5zWxQ2bwqyShX8V';
+const masterEditionKey = 'HDQTR9qhqjLRVPsLC2Aq2J5csVEwHoEJdBbUb6XtdAGf';
 
 
 export const HomeView = () => {
@@ -41,10 +44,24 @@ export const HomeView = () => {
                 ownedMetadata.forEach((metadata) => {
                     console.log('metadata:', metadata.pubkey.toBase58(), metadata);
                 })
-                // console.log("onLookMyMetadata", ownedMetadata);
+
+                const masterEdition = await MasterEdition.load(connection, walletPubkey);
+                console.log("onLookMyMetadata edition", masterEdition);
             }
         } catch {
             console.log("onLookMyMetadata", 'Failed to fetch metadata');
+        }
+    }
+
+    const onLookMyMasterEdition = async () => {
+        try {
+            // Find metadata by owner
+            if (walletPubkey) {
+                const masterEdition = await MasterEdition.load(connection, masterEditionKey);
+                console.log("onLookMyMasterEdition masterEdition", masterEdition);
+            }
+        } catch {
+            console.log("onLookMyMasterEdition", 'Failed to fetch masterEdition');
         }
     }
 
@@ -128,6 +145,8 @@ export const HomeView = () => {
                 <br/>
                 <div>{wallet.publicKey?.toBase58()}</div>
                 <button onClick={onLookMyMetadata} disabled={!wallet.connected}>My metadata</button>
+                <br/>
+                <button onClick={onLookMyMasterEdition} disabled={!wallet.connected}>My master edition</button>
                 <br/>
                 <button onClick={onLookupStore} disabled={!wallet.connected}>Check store</button><br/>
                 <br/>
