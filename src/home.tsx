@@ -44,9 +44,6 @@ export const HomeView = () => {
                 ownedMetadata.forEach((metadata) => {
                     console.log('metadata:', metadata.pubkey.toBase58(), metadata);
                 })
-
-                const masterEdition = await MasterEdition.load(connection, walletPubkey);
-                console.log("onLookMyMetadata edition", masterEdition);
             }
         } catch {
             console.log("onLookMyMetadata", 'Failed to fetch metadata');
@@ -59,6 +56,9 @@ export const HomeView = () => {
             if (walletPubkey) {
                 const masterEdition = await MasterEdition.load(connection, masterEditionKey);
                 console.log("onLookMyMasterEdition masterEdition", masterEdition);
+
+                const edition = await Metadata.getEdition(connection, mintKey);
+                console.log("onLookMyMasterEdition edition", edition);
             }
         } catch {
             console.log("onLookMyMasterEdition", 'Failed to fetch masterEdition');
